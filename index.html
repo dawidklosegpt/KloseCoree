@@ -5,80 +5,166 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>KloseCore — Dawid Klose 2025</title>
 <style>
-body{font-family:Arial, sans-serif;background:#0f1113;color:#eee;margin:0;padding:0;display:flex;flex-direction:column;height:100vh}
-header{background:#151617;padding:10px;text-align:center;font-weight:bold;color:#5eead4}
-main{flex:1;display:flex;flex-direction:column;justify-content:space-between;padding:10px}
-#chat{flex:1;overflow-y:auto;margin-bottom:10px}
-.bubble{padding:10px 14px;border-radius:12px;margin:6px 0;max-width:75%;word-wrap:break-word}
-.user{background:#1f2937;margin-left:auto}
-.ai{background:#111827;color:#e6eef3}
-.input-area{display:flex;gap:8px}
-input{flex:1;padding:10px;border-radius:10px;border:none;background:#151617;color:#eee}
-button{padding:10px 16px;border:none;border-radius:10px;background:#5eead4;color:#000;font-weight:bold;cursor:pointer}
-footer{text-align:center;padding:8px;color:#777;font-size:12px}
+  /* --- Twój oryginalny styl --- */
+  :root{
+    --bg:#0f1113; --panel:#151617; --muted:#9aa0a6; --accent:#5eead4;
+    --user:#1f2937; --ai:#111827; --glass: rgba(255,255,255,0.03);
+  }
+  .light {
+    --bg:#f6f7fb; --panel:#ffffff; --muted:#6b7280; --accent:#0ea5a4;
+    --user:#e6eef3; --ai:#f3f4f6; --glass: rgba(0,0,0,0.03);
+  }
+
+  *{box-sizing:border-box}
+  html,body{height:100%; margin:0; font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial}
+  body{
+    background: radial-gradient(1200px 600px at 10% 10%, rgba(94,234,212,0.04), transparent 10%),
+                radial-gradient(900px 500px at 90% 90%, rgba(99,102,241,0.03), transparent 10%),
+                var(--bg);
+    color: #e6eef3;
+    transition: background 500ms ease, color 300ms ease;
+    display:flex; height:100vh; gap:16px; padding:16px;
+  }
+
+  .sidebar{
+    width:260px; background:linear-gradient(180deg,var(--panel), rgba(255,255,255,0.01));
+    border-radius:14px; padding:14px; display:flex; flex-direction:column; gap:12px;
+    box-shadow: 0 6px 30px rgba(2,6,23,0.6);
+  }
+  .sidebar h3{margin:4px 0 8px 0; font-size:14px; color:var(--muted)}
+  #history{display:flex; flex-direction:column; gap:8px; overflow:auto; max-height:60vh; padding-right:6px}
+  .history-item{background:var(--glass); padding:8px 10px; border-radius:8px; font-size:13px; color:var(--muted); cursor:pointer; transition: transform 180ms ease, box-shadow 180ms ease;}
+  .history-item:hover{ transform: translateX(6px); box-shadow: 0 6px 18px rgba(0,0,0,0.3)}
+
+  .controls{display:flex; gap:8px; align-items:center}
+  .btn {padding:8px 10px; border-radius:10px; border:none; cursor:pointer; background:rgba(255,255,255,0.02); color:var(--muted); transition: transform 160ms ease, background 160ms}
+  .btn:active{transform: translateY(1px)}
+  .theme-toggle{display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:12px; background:linear-gradient(90deg, rgba(255,255,255,0.02), transparent)}
+  .brand{font-weight:600; font-size:14px; color:var(--muted); margin-top:auto; text-align:center}
+
+  .main{flex:1; display:flex; flex-direction:column; gap:12px;}
+  .chat-panel{background: linear-gradient(180deg, rgba(255,255,255,0.01), transparent 40%); border-radius:14px; padding:16px; display:flex; flex-direction:column; height:calc(100vh - 120px); box-shadow: 0 8px 40px rgba(2,6,23,0.6);}
+  .messages{flex:1; overflow:auto; display:flex; flex-direction:column; gap:12px; padding-right:8px}
+  .msg-row{display:flex; gap:10px; align-items:flex-end; max-width:80%}
+  .msg-user{margin-left:auto; justify-content:flex-end}
+  .bubble{padding:12px 14px; border-radius:14px; position:relative; line-height:1.3; white-space:pre-wrap; box-shadow: 0 6px 20px rgba(2,6,23,0.45);}
+  .bubble.ai{background: linear-gradient(180deg,var(--ai), rgba(255,255,255,0.02)); color: #e6eef3; border-top-left-radius:6px;}
+  .bubble.user{background: linear-gradient(180deg,var(--user), rgba(255,255,255,0.01)); color:#fff; border-top-right-radius:6px;}
+
+  @keyframes popIn {0% { transform: translateY(12px) scale(.98); opacity:0 }60% { transform: translateY(-6px) scale(1.02); opacity:1 }100% { transform: translateY(0) scale(1) }}
+  .bubble.animated { animation: popIn 420ms cubic-bezier(.2,.9,.2,1) both; }
+
+  .thinking {display:inline-flex; gap:6px; padding:8px 6px;}
+  .dot{width:8px; height:8px; background:var(--muted); border-radius:50%; opacity:0.9; transform: translateY(0); animation: bounce 800ms infinite alternate;}
+  .dot:nth-child(2){ animation-delay:160ms }
+  .dot:nth-child(3){ animation-delay:320ms }
+  @keyframes bounce { 0%{transform:translateY(0)} 100%{transform:translateY(-6px)} }
+
+  .input-area{display:flex; gap:10px; align-items:center; padding-top:12px}
+  .text-input{flex:1; padding:12px 14px; border-radius:12px; border:none; outline:none; background:var(--glass); color:inherit; box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);}
+  .text-input:focus{ box-shadow: 0 6px 26px rgba(2,6,23,0.6);}
+  .icon-btn{width:48px; height:48px; border-radius:12px; display:grid; place-items:center; cursor:pointer; border:none; background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent)}
+  .icon-btn.recording{ box-shadow: 0 0 0 6px rgba(245,34,45,0.08); animation: pulse 1200ms infinite;}
+  @keyframes pulse { 0%{transform:scale(1)} 50%{transform:scale(1.04)} 100%{transform:scale(1)} }
+
+  .footer { text-align:center; color:var(--muted); font-size:12px; margin-top:8px }
 </style>
 </head>
 <body>
-<header>KloseCore — Asystent AI</header>
-<main>
-<div id="chat"></div>
-<div class="input-area">
-<input id="userInput" placeholder="Napisz wiadomość..." autocomplete="off" />
-<button id="sendBtn">Wyślij</button>
-<button id="voiceBtn">🎤</button>
-</div>
-</main>
-<footer>© 2025 Dawid Klose — Projekt KloseCore</footer>
+  <div class="sidebar">
+    <h3>Historia czatu</h3>
+    <div id="history"></div>
+    <div class="controls">
+      <div class="theme-toggle btn" id="themeBtn"><span id="themeIcon">🌙</span></div>
+      <button class="btn" id="clearHistory">Wyczyść</button>
+    </div>
+    <div class="brand">© 2025 Dawid Klose — KloseCore</div>
+  </div>
+
+  <div class="main">
+    <div class="chat-panel">
+      <div class="messages" id="messages"></div>
+      <div class="input-area">
+        <input id="userInput" class="text-input" placeholder="Napisz wiadomość..." autocomplete="off" />
+        <button id="recordBtn" class="icon-btn">🎤</button>
+        <button id="sendBtn" class="icon-btn">➤</button>
+      </div>
+    </div>
+    <div class="footer">Witaj — jestem asystentem AI stworzonym przez Dawida Klose w 2025 roku.</div>
+  </div>
+
 <script>
 const API_BASE = "https://klosecore.onrender.com";
-const chatBox = document.getElementById('chat');
-const input = document.getElementById('userInput');
+const messagesEl = document.getElementById('messages');
+const userInput = document.getElementById('userInput');
 const sendBtn = document.getElementById('sendBtn');
-const voiceBtn = document.getElementById('voiceBtn');
+const recordBtn = document.getElementById('recordBtn');
+const historyEl = document.getElementById('history');
+let isRecording = false, mediaRecorder, audioChunks = [];
 
-function addMessage(text, sender){
-  const div = document.createElement('div');
-  div.className = 'bubble ' + sender;
-  div.textContent = text;
-  chatBox.appendChild(div);
-  chatBox.scrollTop = chatBox.scrollHeight;
+function appendBubble(text, who='ai', animated=true){
+  const row = document.createElement('div');
+  row.className = 'msg-row ' + (who==='user' ? 'msg-user' : '');
+  const bubble = document.createElement('div');
+  bubble.className = `bubble ${who} ${animated ? 'animated' : ''}`;
+  bubble.textContent = text;
+  row.appendChild(bubble);
+  messagesEl.appendChild(row);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
-async function sendMessage(){
-  const text = input.value.trim();
-  if(!text) return;
-  addMessage(text, 'user');
-  input.value = '';
-  const res = await fetch(`${API_BASE}/chat`, {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ message: text })
-  });
-  const data = await res.json();
-  addMessage(data.reply, 'ai');
+async function sendMessageFlow(text){
+  if(!text.trim()) return;
+  appendBubble(text, 'user');
+  userInput.value = '';
+  const thinking = document.createElement('div');
+  thinking.className = 'bubble ai thinking';
+  thinking.innerHTML = '<span class="dot"></span><span class="dot"></span><span class="dot"></span>';
+  messagesEl.appendChild(thinking);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+  try{
+    const res = await fetch(`${API_BASE}/chat`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({message:text})});
+    const data = await res.json();
+    thinking.remove();
+    appendBubble(data.reply || "Brak odpowiedzi", 'ai');
+  }catch(e){
+    thinking.remove();
+    appendBubble('❌ Błąd połączenia z serwerem.', 'ai');
+  }
 }
 
-sendBtn.onclick = sendMessage;
-input.addEventListener('keydown', e => { if(e.key === 'Enter'){ sendMessage(); }});
+sendBtn.onclick = ()=> sendMessageFlow(userInput.value);
+userInput.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); sendMessageFlow(userInput.value); }});
 
-voiceBtn.addEventListener('click', async ()=>{
+recordBtn.onclick = async ()=>{
+  if(isRecording){ mediaRecorder.stop(); return; }
   try{
     const stream = await navigator.mediaDevices.getUserMedia({audio:true});
-    const recorder = new MediaRecorder(stream);
-    const chunks = [];
-    recorder.ondataavailable = e => chunks.push(e.data);
-    recorder.onstop = async ()=>{
-      addMessage("🎤 [Nagranie wysłane]", "user");
-      const res = await fetch(`${API_BASE}/voice_reply`, {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ message: "Wiadomość głosowa" })
-      });
+    mediaRecorder = new MediaRecorder(stream);
+    audioChunks = [];
+    mediaRecorder.ondataavailable = e=> audioChunks.push(e.data);
+    mediaRecorder.onstop = async ()=>{
+      appendBubble("🎤 [nagranie wysłane]", "user");
+      const res = await fetch(`${API_BASE}/voice_reply`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({message:"Wiadomość głosowa"})});
       const data = await res.json();
-      addMessage(data.reply, 'ai');
+      appendBubble(data.reply || "Brak odpowiedzi głosowej", "ai");
       if(data.audio){ new Audio(data.audio).play(); }
     };
-    recorder.start();
-    setTimeout(()=> recorder.stop(), 4000);
+    mediaRecorder.start();
+    isRecording = true;
+    recordBtn.classList.add('recording');
+    setTimeout(()=>{ mediaRecorder.stop(); isRecording=false; recordBtn.classList.remove('recording'); }, 4000);
   }catch(e){ alert("Brak dostępu do mikrofonu."); }
+};
+
+document.getElementById('clearHistory').onclick = ()=> historyEl.innerHTML='';
+document.getElementById('themeBtn').onclick = ()=>{
+  document.documentElement.classList.toggle('light');
+  document.getElementById('themeIcon').textContent = document.documentElement.classList.contains('light') ? '☀️' : '🌙';
+};
+
+window.addEventListener('load', ()=>{
+  appendBubble('👋 Witaj! Jestem KloseCore — twój asystent AI.', 'ai');
 });
 </script>
 </body>
