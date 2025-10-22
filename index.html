@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>KloseCore — Dawid Klose 2025</title>
+<style>
+body{font-family:Arial, sans-serif;background:#0f1113;color:#eee;margin:0;padding:0;display:flex;flex-direction:column;height:100vh}
+header{background:#151617;padding:10px;text-align:center;font-weight:bold;color:#5eead4}
+main{flex:1;display:flex;flex-direction:column;justify-content:space-between;padding:10px}
+#chat{flex:1;overflow-y:auto;margin-bottom:10px}
+.bubble{padding:10px 14px;border-radius:12px;margin:6px 0;max-width:75%;word-wrap:break-word}
+.user{background:#1f2937;margin-left:auto}
+.ai{background:#111827;color:#e6eef3}
+.input-area{display:flex;gap:8px}
+input{flex:1;padding:10px;border-radius:10px;border:none;background:#151617;color:#eee}
+button{padding:10px 16px;border:none;border-radius:10px;background:#5eead4;color:#000;font-weight:bold;cursor:pointer}
+footer{text-align:center;padding:8px;color:#777;font-size:12px}
+</style>
+</head>
+<body>
+<header>KloseCore — Asystent AI</header>
+<main>
+<div id="chat"></div>
+<div class="input-area">
+<input id="userInput" placeholder="Napisz wiadomość..." autocomplete="off" />
+<button id="sendBtn">Wyślij</button>
+<button id="voiceBtn">🎤</button>
+</div>
+</main>
+<footer>© 2025 Dawid Klose — Projekt KloseCore</footer>
+<script>
+const API_BASE = "https://klosecore.onrender.com";
+const chatBox = document.getElementById('chat');
+const input = document.getElementById('userInput');
+const sendBtn = document.getElementById('sendBtn');
+const voiceBtn = document.getElementById('voiceBtn');
+
+function addMessage(text, sender){
+  const div = document.createElement('div');
+  div.className = 'bubble ' + sender;
+  div.textContent = text;
+  chatBox.appendChild(div);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+async function sendMessage(){
+  const text = input.value.trim();
+  if(!text) return;
+  addMessage(text, 'user');
+  input.value = '';
+  const res = await fetch(`${API_BASE}/chat`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ message: text })
+  });
+  const data = await res.json();
+  addMessage(data.reply, 'ai');
+}
+
+sendBtn.onclick = sendMessage;
+input.addEventListener('keydown', e => { if(e.key === 'Enter'){ sendMessage(); }});
+
+voiceBtn.addEventListener('click', async ()=>{
+  try{
+    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+    const recorder = new MediaRecorder(stream);
+    const chunks = [];
+    recorder.ondataavailable = e => chunks.push(e.data);
+    recorder.onstop = async ()=>{
+      addMessage("🎤 [Nagranie wysłane]", "user");
+      const res = await fetch(`${API_BASE}/voice_reply`, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ message: "Wiadomość głosowa" })
+      });
+      const data = await res.json();
+      addMessage(data.reply, 'ai');
+      if(data.audio){ new Audio(data.audio).play(); }
+    };
+    recorder.start();
+    setTimeout(()=> recorder.stop(), 4000);
+  }catch(e){ alert("Brak dostępu do mikrofonu."); }
+});
+</script>
+</body>
+</html>
